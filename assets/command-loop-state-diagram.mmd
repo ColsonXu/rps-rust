@@ -1,0 +1,63 @@
+graph TD
+    subgraph Login [ ]
+      login_title["Login"]
+      loginz[" "] -..-> login5
+      login5([login5])
+    end
+    subgraph CommandLoop [ ]
+      cmdlp_title["Command Loop"]
+      cmdlp_disconnect{{on <disconnect>}}
+      cmdlp0([cmdlp0])
+      cmdlp1([cmdlp1])
+      cmdlp2([cmdlp2])
+      cmdlp3([cmdlp3])
+      cmdlp4([cmdlp4])
+      cmdlp5([cmdlp5])
+      cmdlp6([cmdlp6])
+    end
+    subgraph Play [ ]
+      play_title["Play"]
+      play0([play0])
+      play8([play8])
+      play0 -..-> playz[" "] -..-> play8
+    end
+    subgraph ENDSG [ ]
+      END{{end}}
+      logout([logout])
+    end
+
+    login5 -->|"?(passwd == db.password(uname) && db.login(uname))"| cmdlp0
+
+
+    cmdlp0 ---->|"output(''Enter command {passwd,play,players,stats,quit} [timeout {{command_timeout}}s]:'')<br>input(cmd)"| cmdlp1
+    cmdlp1 -->|"?(!timeout({{command_timeout}}) && cmd == ''passwd'')"| cmdlp2
+    cmdlp1 -->|"?(!timeout({{command_timeout}}) && cmd == ''play'')<br>output(''Waiting for opponent [{{play_timeout}} timeout]'')"| cmdlp3
+    cmdlp1 -->|"?(!timeout({{command_timeout}}) && cmd == ''players''<br>output(''Online users: {{db.players()}}''))"| cmdlp0
+    cmdlp1 -->|"?(!timeout({{command_timeout}}) && cmd == ''standings'')<br>output(''Standings: {{db.standings()}}'')"| cmdlp0
+    cmdlp1 -->|"?(!timeout({{command_timeout}}) && cmd == ''stats'')<br>output(''{{uname}}: {{db.stats(uname)}}'')"| cmdlp0
+    cmdlp1 ---->|"?(!timeout({{command_timeout}}) && cmd == ''quit'')<br>output(''Goodbye!'')<br><terminate>"| logout
+    cmdlp1 ---->|"?(timeout({{command_timeout}}))<br>output(''Timeout after {{command_timeout}}s'')<br><terminate>"| logout
+    cmdlp1 -->|"?(!timeout({{command_timeout}}) && ![''passwd'',''play'',''players'',''standings'',''stats'',''quit''].contains(cmd)<br>output(''Invalid command (`{{cmd}}`)'')"| cmdlp0
+
+    cmdlp2 -->|"output(''Enter (old) password:'')<br>input(old_passwd)"| cmdlp4
+    cmdlp4 -->|"?(old_passwd != db.password(uname))<br>output(''Incorrect password'')"| cmdlp2
+    cmdlp4 -->|"?(old_passwd == db.password(uname))"| cmdlp5
+
+    cmdlp5 -->|"output(''Enter (new) password:'')<br>input(new_passwd)"| cmdlp6
+    cmdlp6 -->|"?(passwd == '''')<br>output(''Invalid password'')"| cmdlp5
+    cmdlp6 -->|"?(passwd != '''')<br>db.set_passwd(uname,new_passwd)"| cmdlp0
+
+    cmdlp3 ---->|"?(timeout({{play_timeout}}))<br>output(''Sorry, no opponents are ready to battle.'')"| cmdlp0
+    cmdlp3 ---->|"?(!timeout({{play_timeout}}) && opponent = play.request(uname))"| play0
+
+    cmdlp_disconnect --> logout
+
+
+    play8 -->|"output(''{{opponent}}} plays {{oweapon}}; you {{outcome}}!'')"| cmdlp0
+
+
+    logout -->|"db.logout(uname)"| END
+
+
+    classDef invisible visibility:hidden;
+    class loginz,playz invisible

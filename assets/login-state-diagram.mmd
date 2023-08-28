@@ -1,0 +1,52 @@
+graph TD
+    subgraph STARTSG [ ]
+      START{{start}}
+    end
+    subgraph Login [ ]
+      login_title["Login"]
+      login_disconnect{{on <disconnect>}}
+      login0([login0])
+      login1([login1])
+      login2([login2])
+      login3([login3])
+      login4([login4])
+      login5([login5])
+      login6([login6])
+    end
+    subgraph CommandLoop [ ]
+      cmdlp_title["Command Loop"]
+      cmdlp0([cmdlp0])
+      cmdlp0 -..-> cmdlpb[" "]
+    end
+    subgraph ENDSG [ ]
+      END{{end}}
+    end
+
+    START -->|"<connect>"| login0
+
+
+    login0 -->|"output(''Welcome to ROCK-PAPER-SCISSORS!'')"| login1
+
+    login1 ---->|"output(''Enter username:'')<br>input(uname)"| login2
+
+    login2 -->|"?(!alphanumeric(uname))<br/>output(''Invalid username (`{{uname}}`)'')"| login1
+    login2 -->|"?(alphanumeric(uname) && !db.has_key(uname))<br/>output(''Welcome new user!'')"| login3
+    login2 -->|"?(alphanumeric(uname) && db.has_key(uname))"| login4
+
+    login3 ---->|"output(''Enter initial password:'')<br>input(passwd)"| login5
+
+    login5 -->|"?(passwd != '''' && db.create_user(uname,passwd))"| cmdlp0
+    login5 -->|"?(passwd != '''' && !db.create_user(uname,passwd))<br>output(''User {{uname}} already online'')<br><terminate>"| END
+    login5 -->|"?(passwd == '''')<br>output(''Invalid password'')"| login3
+
+    login4 ---->|"output(''Enter pasword:'')<br>input(passwd)"| login6
+
+    login6 -->|"?(passwd == db.password(uname) && db.login(uname))"| cmdlp0
+    login6 -->|"?(passwd == db.password(uname) && !db.login(uname))<br>output(''User {{uname}} already online'')<br><terminate>"| END
+    login6 -->|"?(passwd != db.password(uname))<br>output(''Incorrect password'')"| login4
+
+    login_disconnect --> END
+
+
+    classDef invisible visibility:hidden;
+    class cmdlpb invisible

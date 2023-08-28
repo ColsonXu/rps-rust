@@ -1,0 +1,67 @@
+graph TD
+    subgraph CommandLoop [ ]
+      cmdlp_title["Command Loop"]
+      cmdlp0([cmdlp0])
+      cmdlp1([cmdlp1])
+      cmdlp3([cmdlp3])
+      cmdlpa[" "] -..-> cmdlp0
+      cmdlp1 -..-> cmdlpb[" "]
+    end
+    subgraph Play [ ]
+      play_title["Play"]
+      play0([play0])
+      play2([play1])
+      play6([play2])
+      play8([play3])
+      subgraph Weapon [ ]
+        weapon_title["Weapon"]
+        play1([weapon0])
+        play3([weapon1])
+        play4([weapon2])
+        play5([weapon3])
+        play7([weapon4])
+      end
+    end
+    subgraph ENDSG [ ]
+      END{{end}}
+      logout([logout])
+    end
+
+    cmdlp0 ---->|"output(''Enter command {passwd,play,players,stats,quit} [{{command_timeout}}s timeout]:'')<br>input(cmd)"| cmdlp1
+    cmdlp1 -->|"?(!timeout({{command_timeout}}) && cmd == ''play'')<br>output(''Waiting for opponent [{{play_timeout}} timeout]'')"| cmdlp3
+    cmdlp3 ---->|"?(!timeout({{play_timeout}}) && opponent = play.request(uname))"| play0
+    cmdlp3 ---->|"?(timeout({{play_timeout}}))<br>output(''Sorry, no opponents are ready to battle.'')"| cmdlp0
+
+
+    play0 -->|"output(''{uname} versus {opponent}!!'')"| play1
+    play0 -->|"<disconnect>"| play2
+
+    play1 -->|"wstime = now()"| play3
+
+    play2 -->|"(oweapon,outcome) = play.finish(None)<br>db.inc_stats_by_outcome(uname,outcome)"| logout
+
+    play3 -->|"wtimeout = wstime + {{weapon_timeout}} - now()"| play4
+
+    play4 ---->|"output(''Choose your weapon {r,p,s} [{{wtimeout}}s timeout]:'')<br>input(wstr)"| play5
+    play4 -->|"<disconnect>"| play2
+
+    play5 ---->|"?(timeout(wtimeout))<br>weapon = None"| play6
+    play5 -->|"?(!timeout(wtimeout) && wstr == ''r'')<br>weapon = Some(Rock)"| play6
+    play5 -->|"?(!timeout(wtimeout) && wstr == ''p'')<br>weapon = Some(Paper)"| play6
+    play5 -->|"?(!timeout(wtimeout) && wstr == ''s'')<br>weapon = Some(Scissors)"| play6
+    play5 ---->|"?(!timeout(wtimeout) && ![''r'',''p'',''s''].contains(wstr))"| play7
+
+    play6 -->|"(oweapon,outcome) = play.finish(weapon)<br>db.inc_stats_by_outcome(uname,outcome)"| play8
+
+    play7 -->|"output(''Invalid weapon (`{{wstr}}`)'')"| play3
+    play7 -->|"<disconnect>"| play2
+
+    play8 ---->|"output(''{{opponent}}} plays {{oweapon}}; you {{outcome}}!'')"| cmdlp0
+    play8 ---->|"<disconnect>"| logout
+
+
+    logout -->|"db.loutout(uname)"| END
+
+
+    classDef invisible visibility:hidden;
+    class cmdlpa,cmdlpb invisible
