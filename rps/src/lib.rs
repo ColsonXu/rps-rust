@@ -1,18 +1,3 @@
-/*
-
-Name:
-    Colson Xu
-
-Time spent on assignment:
-    24-48 hours
-
-Collaborators/Acknowledgements:
-    None.
-*/
-
-/* ************************************************************************* */
-/* ************************************************************************* */
-
 use std::cmp::Ordering;
 use std::collections::{hash_map, HashMap};
 use std::fmt::{self, Display, Formatter};
@@ -885,11 +870,6 @@ async fn standings_command(
 
 /*
 
-Describe the design of the implementation of `play_command`.  Especially comment
-on what synchronization primitives are used, how data is communicated or shared
-between tasks, and any additional tasks that are spawned.
-
-YOUR ANSWER HERE.
 I used the actor model to achieve the desired behavior. Specifically,
 two actors are used, a broker and a referee. The broker is a loop that
 runs continuously after server starts. It is responsible for the match making
